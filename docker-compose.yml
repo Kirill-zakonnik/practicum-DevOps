@@ -1,0 +1,38 @@
+version: '3' 
+ 
+services: 
+  app: 
+    build: . 
+    command: sh -c "python manage.py migrate && uwsgi --http :8000 --module parrotsite.wsgi" 
+    depends_on: 
+      - db 
+    ports: 
+      - 8000:8000
+    networks: 
+      - app-tier 
+    environment: 
+      DJANGO_DB_HOST: db 
+      DJANGO_DB_NAME: app 
+      DJANGO_DB_USER: worker 
+      DJANGO_DB_PASS: worker 
+      DJANGO_DB_PORT: 5432 
+      DJANGO_DEBUG: False 
+ 
+  db: 
+    image: postgres:13 
+    environment: 
+      POSTGRES_USER: worker 
+      POSTGRES_DB: app 
+      POSTGRES_PASSWORD: worker 
+    volumes: 
+      - postgres_data:/var/lib/postgresql/data 
+    networks: 
+      - app-tier 
+    ports: 
+      - 5432:5432
+volumes: 
+  postgres_data: 
+networks: 
+  app-tier: 
+    driver: bridge 
+ 
